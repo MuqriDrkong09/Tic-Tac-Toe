@@ -20,6 +20,7 @@ import type { GameStatus, Player } from "../types.ts";
  */
 export type StatusBarProps = {
   status: GameStatus;
+  playerLabel: (player: Player) => string;
 };
 
 const PlayerBadge = ({ player }: { player: Player }) => (
@@ -44,7 +45,7 @@ const PlayerBadge = ({ player }: { player: Player }) => (
   </Box>
 );
 
-export default function StatusBar({ status }: StatusBarProps) {
+export default function StatusBar({ status, playerLabel }: StatusBarProps) {
   let icon: React.ReactNode;
   let content: React.ReactNode;
   let bgcolor: string;
@@ -59,10 +60,10 @@ export default function StatusBar({ status }: StatusBarProps) {
       );
       content = (
         <Stack direction="row" spacing={1.25} alignItems="center">
-          <Typography variant="h6" component="span" color="text.primary">
-            Next:
-          </Typography>
           <PlayerBadge player={status.nextPlayer} />
+          <Typography variant="h6" component="span" color="text.primary">
+            {playerLabel(status.nextPlayer)}&apos;s turn
+          </Typography>
         </Stack>
       );
       bgcolor = "background.paper";
@@ -77,7 +78,7 @@ export default function StatusBar({ status }: StatusBarProps) {
         <Stack direction="row" spacing={1.25} alignItems="center">
           <PlayerBadge player={status.winner} />
           <Typography variant="h6" component="span" color="success.dark">
-            wins!
+            {playerLabel(status.winner)} wins!
           </Typography>
         </Stack>
       );

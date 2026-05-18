@@ -14,6 +14,26 @@ export type GameMode = "pvp" | "vs_ai";
 
 export type AiDifficulty = "easy" | "medium" | "hard";
 
+export type PlayerNames = {
+  readonly X: string;
+  readonly O: string;
+};
+
+/** Options chosen on the pre-game screen; fixed for the current match. */
+export type GameConfig = {
+  readonly gameMode: GameMode;
+  readonly aiDifficulty: AiDifficulty;
+  /** Local human side in vs_ai mode (ignored in pvp). */
+  readonly humanPlayer: Player;
+  readonly names: PlayerNames;
+};
+
+export const getAiPlayer = (config: GameConfig): Player =>
+  config.humanPlayer === "X" ? "O" : "X";
+
+export const getPlayerName = (config: GameConfig, player: Player): string =>
+  config.names[player];
+
 export type Cell = Player | null;
 
 export type BoardState = readonly [

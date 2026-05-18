@@ -9,6 +9,8 @@ import type { Scoreboard as ScoreboardType } from "../types.ts";
  */
 export type ScoreboardProps = {
   score: ScoreboardType;
+  labelX?: string;
+  labelO?: string;
 };
 
 type Tone = "primary" | "secondary" | "neutral";
@@ -66,7 +68,13 @@ const ScoreCard = ({
   );
 };
 
-export default function Scoreboard({ score }: ScoreboardProps) {
+const winsLabel = (name: string) => `${name.toUpperCase()} WINS`;
+
+export default function Scoreboard({
+  score,
+  labelX = "X",
+  labelO = "O",
+}: ScoreboardProps) {
   return (
     <Stack
       direction="row"
@@ -74,9 +82,9 @@ export default function Scoreboard({ score }: ScoreboardProps) {
       sx={{ width: "100%" }}
       aria-label="Scoreboard"
     >
-      <ScoreCard label="X WINS" value={score.X} tone="primary" />
+      <ScoreCard label={winsLabel(labelX)} value={score.X} tone="primary" />
       <ScoreCard label="DRAWS" value={score.draws} tone="neutral" />
-      <ScoreCard label="O WINS" value={score.O} tone="secondary" />
+      <ScoreCard label={winsLabel(labelO)} value={score.O} tone="secondary" />
     </Stack>
   );
 }
