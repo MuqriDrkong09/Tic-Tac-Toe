@@ -14,6 +14,7 @@ import type { Cell } from "../types.ts";
  */
 export type SquareProps = {
   value: Cell;
+  cellSize: number;
   onClick: () => void;
   isWinning?: boolean;
   disabled?: boolean;
@@ -26,10 +27,13 @@ const pop = keyframes`
 
 export default function Square({
   value,
+  cellSize,
   onClick,
   isWinning = false,
   disabled = false,
 }: SquareProps) {
+  // cellSize is in px; mark ~50% of cell height (numeric = px in MUI).
+  const fontSizePx = Math.max(22, cellSize * 0.5);
   const isOccupied = value !== null;
   const isDisabled = disabled || isOccupied;
 
@@ -40,8 +44,8 @@ export default function Square({
       focusRipple
       aria-label={value === null ? "Empty cell" : `Cell with ${value}`}
       sx={{
-        width: { xs: 80, sm: 96 },
-        height: { xs: 80, sm: 96 },
+        width: cellSize,
+        height: cellSize,
         borderRadius: 2,
         bgcolor: isWinning ? "success.light" : "background.paper",
         boxShadow: 2,
@@ -64,7 +68,7 @@ export default function Square({
         sx={{
           fontFamily: "Roboto, sans-serif",
           fontWeight: 800,
-          fontSize: { xs: "2.5rem", sm: "3rem" },
+          fontSize: fontSizePx,
           lineHeight: 1,
           color: value === "X" ? "primary.main" : "secondary.main",
           animation: value !== null ? `${pop} 180ms ease-out` : "none",

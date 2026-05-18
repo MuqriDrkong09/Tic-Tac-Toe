@@ -74,7 +74,7 @@ export default function App() {
           px: 2,
         }}
       >
-        <Container maxWidth="sm" disableGutters>
+        <Container maxWidth="md" disableGutters>
           <Paper
             elevation={3}
             sx={{

@@ -14,6 +14,7 @@ import Typography from "@mui/material/Typography";
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import type {
   AiDifficulty,
+  BoardSize,
   GameConfig,
   GameMode,
   Player,
@@ -26,6 +27,7 @@ export type PreGameSetupProps = {
 
 type SetupForm = {
   gameMode: GameMode;
+  boardSize: BoardSize;
   aiDifficulty: AiDifficulty;
   humanPlayer: Player;
   nameX: string;
@@ -36,6 +38,7 @@ const DEFAULT_PVP_NAMES = { nameX: "Player 1", nameO: "Player 2" } as const;
 
 const buildConfig = (form: SetupForm): GameConfig => ({
   gameMode: form.gameMode,
+  boardSize: form.boardSize,
   aiDifficulty: form.aiDifficulty,
   humanPlayer: form.humanPlayer,
   names: {
@@ -48,6 +51,7 @@ const formFromConfig = (config: GameConfig | null | undefined): SetupForm => {
   if (config === null || config === undefined) {
     return {
       gameMode: "pvp",
+      boardSize: 3,
       aiDifficulty: "medium",
       humanPlayer: "X",
       ...DEFAULT_PVP_NAMES,
@@ -55,6 +59,7 @@ const formFromConfig = (config: GameConfig | null | undefined): SetupForm => {
   }
   return {
     gameMode: config.gameMode,
+    boardSize: config.boardSize,
     aiDifficulty: config.aiDifficulty,
     humanPlayer: config.humanPlayer,
     nameX: config.names.X,
@@ -123,8 +128,29 @@ export default function PreGameSetup({
           New game
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Choose how you want to play. X always takes the first move.
+          Choose board size and mode. X always takes the first move; you need{" "}
+          {form.boardSize} in a row to win on a {form.boardSize}×{form.boardSize}{" "}
+          board.
         </Typography>
+      </Box>
+
+      <Box>
+        <Typography variant="subtitle2" fontWeight={700} gutterBottom>
+          Board size
+        </Typography>
+        <ToggleButtonGroup
+          exclusive
+          fullWidth
+          value={form.boardSize}
+          onChange={(_, value: BoardSize | null) => {
+            if (value !== null) setField("boardSize", value);
+          }}
+          aria-label="Board size"
+        >
+          <ToggleButton value={3}>3×3</ToggleButton>
+          <ToggleButton value={4}>4×4</ToggleButton>
+          <ToggleButton value={5}>5×5</ToggleButton>
+        </ToggleButtonGroup>
       </Box>
 
       <Box>
@@ -159,7 +185,9 @@ export default function PreGameSetup({
             >
               <MenuItem value="easy">Easy — random</MenuItem>
               <MenuItem value="medium">Medium — blocks &amp; attacks</MenuItem>
-              <MenuItem value="hard">Hard — minimax (unbeatable)</MenuItem>
+              <MenuItem value="hard">
+                Hard — unbeatable on 3×3, strong on larger boards
+              </MenuItem>
             </Select>
           </FormControl>
 

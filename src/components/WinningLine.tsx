@@ -3,20 +3,9 @@ import { useTheme } from "@mui/material/styles";
 import { keyframes } from "@mui/system";
 import type { WinningLine as WinningLineType } from "../types.ts";
 
-/**
- * Absolutely-positioned SVG overlay that strokes a line from the center
- * of the first winning cell to the center of the last winning cell.
- *
- * The "drawing" effect uses the SVG `pathLength` trick:
- *  - We declare `pathLength={1}` so dasharray/dashoffset are expressed
- *    as fractions of the line length (units cancel out).
- *  - Animating dashoffset 1 → 0 reveals the stroke.
- *
- * This means a single shared keyframe works for any of the 8 winning
- * lines, regardless of pixel length.
- */
 export type WinningLineProps = {
   line: WinningLineType;
+  boardSize: number;
   cellSize: number;
   gap: number;
   padding: number;
@@ -29,12 +18,13 @@ const draw = keyframes`
 
 const cellCenter = (
   index: number,
+  boardSize: number,
   cellSize: number,
   gap: number,
   padding: number,
 ) => {
-  const row = Math.floor(index / 3);
-  const col = index % 3;
+  const row = Math.floor(index / boardSize);
+  const col = index % boardSize;
   return {
     x: padding + col * (cellSize + gap) + cellSize / 2,
     y: padding + row * (cellSize + gap) + cellSize / 2,
@@ -43,14 +33,21 @@ const cellCenter = (
 
 export default function WinningLine({
   line,
+  boardSize,
   cellSize,
   gap,
   padding,
 }: WinningLineProps) {
   const theme = useTheme();
-  const totalSize = 3 * cellSize + 2 * gap + 2 * padding;
-  const start = cellCenter(line[0], cellSize, gap, padding);
-  const end = cellCenter(line[2], cellSize, gap, padding);
+  const gridSpan = boardSize * cellSize + (boardSize - 1) * gap;
+  const totalSize = gridSpan + 2 * padding;
+
+  const startIdx = line[0]!;
+  const endIdx = line[line.length - 1]!;
+  const start = cellCenter(startIdx, boardSize, cellSize, gap, padding);
+  const end = cellCenter(endIdx, boardSize, cellSize, gap, padding);
+
+  const strokeWidth = Math.max(6, Math.min(10, cellSize / 8));
 
   return (
     <Box
@@ -72,7 +69,7 @@ export default function WinningLine({
         x2={end.x}
         y2={end.y}
         stroke={theme.palette.success.main}
-        strokeWidth={10}
+        strokeWidth={strokeWidth}
         strokeLinecap="round"
         pathLength={1}
         style={{

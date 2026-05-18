@@ -1,25 +1,19 @@
-import {
-  WINNING_LINES,
-  type BoardState,
-  type Cell,
-  type CellIndex,
-  type GameStatus,
-  type Move,
-  type Player,
-  type WinningLine,
+import type { BoardRules } from "./boardRules.ts";
+import type {
+  BoardState,
+  Cell,
+  CellIndex,
+  GameStatus,
+  Move,
+  Player,
+  WinningLine,
 } from "./types.ts";
 
 /**
- * Pure game-logic utilities for Tic-Tac-Toe.
- *
- * All functions are side-effect free and never mutate their inputs,
- * so the React state holding a BoardState can pass through them safely.
+ * Pure game-logic utilities for Tic-Tac-Toe variants.
+ * All functions accept `rules` so win detection works for any board size.
  */
 
-/**
- * Returns the next player to move, derived from the board.
- * X always moves first, so when X-count equals O-count it's X's turn.
- */
 export const getNextPlayer = (board: BoardState): Player => {
   let xCount = 0;
   let oCount = 0;
@@ -30,36 +24,66 @@ export const getNextPlayer = (board: BoardState): Player => {
   return xCount <= oCount ? "X" : "O";
 };
 
+const tryLine = (
+  board: BoardState,
+  rules: BoardRules,
+  startRow: number,
+  startCol: number,
+  dRow: number,
+  dCol: number,
+): { winner: Player; line: WinningLine } | null => {
+  const { size, winLength } = rules;
+  const indices: number[] = [];
+
+  for (let i = 0; i < winLength; i++) {
+    const row = startRow + dRow * i;
+    const col = startCol + dCol * i;
+    if (row < 0 || row >= size || col < 0 || col >= size) return null;
+    indices.push(row * size + col);
+  }
+
+  const first = board[indices[0]!];
+  if (first === null) return null;
+  if (indices.every((idx) => board[idx] === first)) {
+    return { winner: first, line: indices };
+  }
+  return null;
+};
+
 /**
- * Returns the winner and the winning line if one exists, else null.
- * Scans the 8 possible lines exactly once → O(1) work.
+ * Scans rows, columns, and diagonals for `winLength` consecutive marks.
  */
 export const calculateWinner = (
   board: BoardState,
+  rules: BoardRules,
 ): { winner: Player; line: WinningLine } | null => {
-  for (const line of WINNING_LINES) {
-    const [a, b, c] = line;
-    const value = board[a];
-    if (value !== null && value === board[b] && value === board[c]) {
-      return { winner: value, line };
+  const { size } = rules;
+  const directions = [
+    { dRow: 0, dCol: 1 },
+    { dRow: 1, dCol: 0 },
+    { dRow: 1, dCol: 1 },
+    { dRow: 1, dCol: -1 },
+  ] as const;
+
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col < size; col++) {
+      for (const { dRow, dCol } of directions) {
+        const result = tryLine(board, rules, row, col, dRow, dCol);
+        if (result !== null) return result;
+      }
     }
   }
   return null;
 };
 
-/** True when every cell is filled. */
 export const isBoardFull = (board: BoardState): boolean =>
   board.every((cell) => cell !== null);
 
-/**
- * Computes the full game status as a discriminated union, so callers
- * (e.g. the UI) can switch on `status.kind` exhaustively.
- *
- * Order of checks matters: a winning board that is also full must be
- * reported as `won`, not `draw`.
- */
-export const getGameStatus = (board: BoardState): GameStatus => {
-  const winInfo = calculateWinner(board);
+export const getGameStatus = (
+  board: BoardState,
+  rules: BoardRules,
+): GameStatus => {
+  const winInfo = calculateWinner(board, rules);
   if (winInfo !== null) {
     return { kind: "won", winner: winInfo.winner, line: winInfo.line };
   }
@@ -69,43 +93,33 @@ export const getGameStatus = (board: BoardState): GameStatus => {
   return { kind: "in_progress", nextPlayer: getNextPlayer(board) };
 };
 
-/**
- * Returns a new BoardState with `player` placed at `index`.
- * If the cell is already occupied, returns the original board unchanged
- * (this is a guard; the UI should also disable occupied cells).
- *
- * The cast back to BoardState is safe because `.map` preserves length,
- * but TS can't infer that for fixed-length tuples.
- */
 export const applyMove = (
   board: BoardState,
   index: CellIndex,
   player: Player,
 ): BoardState => {
-  if (board[index] !== null) return board;
-  const next = board.map((cell, i) => (i === index ? player : cell)) as Cell[];
-  return next as unknown as BoardState;
+  if (index < 0 || index >= board.length || board[index] !== null) {
+    return board;
+  }
+  const next = [...board] as Cell[];
+  next[index] = player;
+  return next;
 };
 
-/**
- * Derives the move that produced `history[step]` from `history[step - 1]`.
- * Returns null for step 0 (initial board) or invalid indices.
- */
 export const getMoveAtStep = (
   history: readonly BoardState[],
   step: number,
 ): Move | null => {
   if (step <= 0 || step >= history.length) return null;
-  const prev = history[step - 1];
-  const next = history[step];
-  for (let i = 0; i < 9; i++) {
-    const index = i as CellIndex;
-    if (prev[index] === null && next[index] !== null) {
-      return { player: next[index] as Player, cellIndex: index };
+  const prev = history[step - 1]!;
+  const next = history[step]!;
+  for (let i = 0; i < next.length; i++) {
+    if (prev[i] === null && next[i] !== null) {
+      return { player: next[i] as Player, cellIndex: i };
     }
   }
   return null;
 };
 
-/** Human-friendly cell label (1–9, top-left to bottom-right). */
+/** Human-friendly cell label (1 … size×size, top-left to bottom-right). */
 export const formatCellPosition = (index: CellIndex): number => index + 1;

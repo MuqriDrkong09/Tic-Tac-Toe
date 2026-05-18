@@ -1,34 +1,30 @@
+import { createEmptyBoard } from "./boardRules.ts";
+import type { BoardRules } from "./boardRules.ts";
 import { applyMove, getGameStatus } from "./gameLogic.ts";
-import {
-  EMPTY_BOARD,
-  type BoardState,
-  type CellIndex,
-} from "./types.ts";
+import type { BoardState, CellIndex } from "./types.ts";
 
-/**
- * Board timeline state: every snapshot plus the index of the one on screen.
- * Undo/redo only move `currentStep`; PLAY_MOVE truncates future steps when
- * branching from the past.
- */
 export type GameHistoryState = {
   readonly history: BoardState[];
   readonly currentStep: number;
+  readonly rules: BoardRules;
 };
 
-export const INITIAL_GAME_HISTORY: GameHistoryState = {
-  history: [EMPTY_BOARD],
+export const createInitialHistory = (rules: BoardRules): GameHistoryState => ({
+  history: [createEmptyBoard(rules.size)],
   currentStep: 0,
-};
+  rules,
+});
 
 export type GameAction =
   | { type: "PLAY_MOVE"; index: CellIndex }
   | { type: "JUMP_TO_STEP"; step: number }
   | { type: "UNDO" }
   | { type: "REDO" }
-  | { type: "NEW_GAME" };
+  | { type: "NEW_GAME"; rules: BoardRules }
+  | { type: "RESET"; rules: BoardRules };
 
 export const selectBoard = (state: GameHistoryState): BoardState =>
-  state.history[state.currentStep];
+  state.history[state.currentStep]!;
 
 export const canUndo = (state: GameHistoryState): boolean =>
   state.currentStep > 0;
@@ -62,11 +58,12 @@ export function gameReducer(
       };
 
     case "NEW_GAME":
-      return INITIAL_GAME_HISTORY;
+    case "RESET":
+      return createInitialHistory(action.rules);
 
     case "PLAY_MOVE": {
-      const currentBoard = state.history[state.currentStep];
-      const currentStatus = getGameStatus(currentBoard);
+      const currentBoard = state.history[state.currentStep]!;
+      const currentStatus = getGameStatus(currentBoard, state.rules);
       if (currentStatus.kind !== "in_progress") return state;
       if (currentBoard[action.index] !== null) return state;
 
@@ -80,6 +77,7 @@ export function gameReducer(
         nextBoard,
       ];
       return {
+        ...state,
         history: nextHistory,
         currentStep: nextHistory.length - 1,
       };

@@ -1,12 +1,14 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useReducer,
   useRef,
   useState,
   type Dispatch,
   type SetStateAction,
 } from "react";
+import { createBoardRules } from "../boardRules.ts";
 import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -24,9 +26,9 @@ import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 import UndoRoundedIcon from "@mui/icons-material/UndoRounded";
 import { isAiTurn, pickAiMove } from "../ai.ts";
 import {
-  INITIAL_GAME_HISTORY,
   canRedo,
   canUndo,
+  createInitialHistory,
   gameReducer,
   isAtLatestStep,
   selectBoard,
@@ -73,9 +75,15 @@ export default function GameSession({
   onScoreChange,
   onBackToSetup,
 }: GameSessionProps) {
+  const rules = useMemo(
+    () => createBoardRules(config.boardSize),
+    [config.boardSize],
+  );
+
   const [gameState, dispatch] = useReducer(
     gameReducer,
-    INITIAL_GAME_HISTORY,
+    rules,
+    createInitialHistory,
   );
   const [historyOpen, setHistoryOpen] = useState(false);
   const [isAiThinking, setIsAiThinking] = useState(false);
@@ -90,7 +98,7 @@ export default function GameSession({
   const redoAvailable = canRedo(gameState);
   const moveCount = history.length - 1;
 
-  const status = getGameStatus(board);
+  const status = getGameStatus(board, rules);
   const isGameOver = status.kind !== "in_progress";
   const winningLine = status.kind === "won" ? status.line : null;
 
@@ -111,7 +119,11 @@ export default function GameSession({
   const newGameButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const dispatchGame = useCallback((action: GameAction) => {
-    if (action.type === "PLAY_MOVE" || action.type === "NEW_GAME") {
+    if (
+      action.type === "PLAY_MOVE" ||
+      action.type === "NEW_GAME" ||
+      action.type === "RESET"
+    ) {
       countedRef.current = false;
     }
     dispatch(action);
@@ -137,11 +149,11 @@ export default function GameSession({
 
   useEffect(() => {
     if (config.gameMode !== "vs_ai" || aiPlayer === null || !atLatest) return;
-    if (!isAiTurn(board, config.gameMode, aiPlayer)) return;
+    if (!isAiTurn(board, rules, config.gameMode, aiPlayer)) return;
 
     setIsAiThinking(true);
     const timer = window.setTimeout(() => {
-      const move = pickAiMove(board, config.aiDifficulty, aiPlayer);
+      const move = pickAiMove(board, rules, config.aiDifficulty, aiPlayer);
       if (move !== null) {
         dispatchGame({ type: "PLAY_MOVE", index: move });
       }
@@ -152,7 +164,7 @@ export default function GameSession({
       clearTimeout(timer);
       setIsAiThinking(false);
     };
-  }, [board, config, aiPlayer, atLatest, dispatchGame]);
+  }, [board, rules, config, aiPlayer, atLatest, dispatchGame]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -198,15 +210,15 @@ export default function GameSession({
   );
 
   const handleNewGame = useCallback(() => {
-    dispatchGame({ type: "NEW_GAME" });
+    dispatchGame({ type: "NEW_GAME", rules });
     setHistoryOpen(false);
-  }, [dispatchGame]);
+  }, [dispatchGame, rules]);
 
   const handleResetAll = useCallback(() => {
-    dispatchGame({ type: "NEW_GAME" });
+    dispatchGame({ type: "RESET", rules });
     onScoreChange({ X: 0, O: 0, draws: 0 });
     setHistoryOpen(false);
-  }, [dispatchGame, onScoreChange]);
+  }, [dispatchGame, rules, onScoreChange]);
 
   return (
     <Box
@@ -264,6 +276,7 @@ export default function GameSession({
 
       <Board
         board={board}
+        rules={rules}
         winningLine={winningLine}
         disabled={boardDisabled}
         onCellClick={handleCellClick}
