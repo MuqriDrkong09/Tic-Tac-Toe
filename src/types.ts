@@ -10,6 +10,10 @@
 
 export type Player = "X" | "O";
 
+export type GameMode = "pvp" | "vs_ai";
+
+export type AiDifficulty = "easy" | "medium" | "hard";
+
 export type Cell = Player | null;
 
 export type BoardState = readonly [

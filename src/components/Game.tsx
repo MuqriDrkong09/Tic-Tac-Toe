@@ -19,7 +19,9 @@ import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import RedoRoundedIcon from "@mui/icons-material/RedoRounded";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 import UndoRoundedIcon from "@mui/icons-material/UndoRounded";
+import { isAiTurn, pickAiMove } from "../ai.ts";
 import Board from "./Board.tsx";
+import GameSettings from "./GameSettings.tsx";
 import MoveHistory from "./MoveHistory.tsx";
 import Scoreboard from "./Scoreboard.tsx";
 import StatusBar from "./StatusBar.tsx";
@@ -33,11 +35,20 @@ import {
   selectBoard,
   type GameAction,
 } from "../gameReducer.ts";
-import type { CellIndex, Scoreboard as ScoreboardType } from "../types.ts";
+import type {
+  AiDifficulty,
+  CellIndex,
+  GameMode,
+  Player,
+  Scoreboard as ScoreboardType,
+} from "../types.ts";
 
 const INITIAL_SCORE: ScoreboardType = { X: 0, O: 0, draws: 0 };
 
 const HISTORY_DRAWER_WIDTH = 300;
+const HUMAN_PLAYER: Player = "X";
+const AI_PLAYER: Player = "O";
+const AI_MOVE_DELAY_MS = 450;
 
 const isEditableTarget = (target: EventTarget | null): boolean => {
   if (!(target instanceof HTMLElement)) return false;
@@ -63,6 +74,9 @@ export default function Game() {
   );
   const [score, setScore] = useState<ScoreboardType>(INITIAL_SCORE);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [gameMode, setGameMode] = useState<GameMode>("pvp");
+  const [aiDifficulty, setAiDifficulty] = useState<AiDifficulty>("medium");
+  const [isAiThinking, setIsAiThinking] = useState(false);
 
   const { history, currentStep } = gameState;
   const board = selectBoard(gameState);
@@ -74,6 +88,12 @@ export default function Game() {
   const status = getGameStatus(board);
   const isGameOver = status.kind !== "in_progress";
   const winningLine = status.kind === "won" ? status.line : null;
+
+  const isHumanTurn =
+    gameMode === "pvp" ||
+    (status.kind === "in_progress" && status.nextPlayer === HUMAN_PLAYER);
+
+  const boardDisabled = isGameOver || !isHumanTurn || isAiThinking;
 
   const countedRef = useRef(false);
   const newGameButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -102,6 +122,25 @@ export default function Game() {
       newGameButtonRef.current?.focus();
     }
   }, [isGameOver, atLatest]);
+
+  useEffect(() => {
+    if (gameMode !== "vs_ai" || !atLatest) return;
+    if (!isAiTurn(board, gameMode, AI_PLAYER)) return;
+
+    setIsAiThinking(true);
+    const timer = window.setTimeout(() => {
+      const move = pickAiMove(board, aiDifficulty, AI_PLAYER);
+      if (move !== null) {
+        dispatchGame({ type: "PLAY_MOVE", index: move });
+      }
+      setIsAiThinking(false);
+    }, AI_MOVE_DELAY_MS);
+
+    return () => {
+      clearTimeout(timer);
+      setIsAiThinking(false);
+    };
+  }, [board, gameMode, atLatest, aiDifficulty, dispatchGame]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -133,9 +172,28 @@ export default function Game() {
 
   const handleCellClick = useCallback(
     (index: CellIndex) => {
+      if (!isHumanTurn || isAiThinking) return;
       dispatchGame({ type: "PLAY_MOVE", index });
     },
+    [dispatchGame, isHumanTurn, isAiThinking],
+  );
+
+  const handleGameModeChange = useCallback(
+    (mode: GameMode) => {
+      setGameMode(mode);
+      dispatchGame({ type: "NEW_GAME" });
+    },
     [dispatchGame],
+  );
+
+  const handleAiDifficultyChange = useCallback(
+    (difficulty: AiDifficulty) => {
+      setAiDifficulty(difficulty);
+      if (gameMode === "vs_ai") {
+        dispatchGame({ type: "NEW_GAME" });
+      }
+    },
+    [dispatchGame, gameMode],
   );
 
   const handleJumpToStep = useCallback((step: number) => {
@@ -181,6 +239,13 @@ export default function Game() {
     >
       <Scoreboard score={score} />
 
+      <GameSettings
+        gameMode={gameMode}
+        aiDifficulty={aiDifficulty}
+        onGameModeChange={handleGameModeChange}
+        onAiDifficultyChange={handleAiDifficultyChange}
+      />
+
       <Stack direction="row" spacing={1} alignItems="stretch" sx={{ width: "100%" }}>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <StatusBar status={status} />
@@ -208,10 +273,21 @@ export default function Game() {
         </Tooltip>
       </Stack>
 
+      {isAiThinking && (
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ fontStyle: "italic" }}
+          aria-live="polite"
+        >
+          Computer is thinking…
+        </Typography>
+      )}
+
       <Board
         board={board}
         winningLine={winningLine}
-        disabled={isGameOver}
+        disabled={boardDisabled}
         onCellClick={handleCellClick}
       />
 
