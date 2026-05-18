@@ -4,6 +4,7 @@ import {
   type Cell,
   type CellIndex,
   type GameStatus,
+  type Move,
   type Player,
   type WinningLine,
 } from "./types.ts";
@@ -85,3 +86,26 @@ export const applyMove = (
   const next = board.map((cell, i) => (i === index ? player : cell)) as Cell[];
   return next as unknown as BoardState;
 };
+
+/**
+ * Derives the move that produced `history[step]` from `history[step - 1]`.
+ * Returns null for step 0 (initial board) or invalid indices.
+ */
+export const getMoveAtStep = (
+  history: readonly BoardState[],
+  step: number,
+): Move | null => {
+  if (step <= 0 || step >= history.length) return null;
+  const prev = history[step - 1];
+  const next = history[step];
+  for (let i = 0; i < 9; i++) {
+    const index = i as CellIndex;
+    if (prev[index] === null && next[index] !== null) {
+      return { player: next[index] as Player, cellIndex: index };
+    }
+  }
+  return null;
+};
+
+/** Human-friendly cell label (1–9, top-left to bottom-right). */
+export const formatCellPosition = (index: CellIndex): number => index + 1;

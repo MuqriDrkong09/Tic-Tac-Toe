@@ -26,6 +26,12 @@ export type BoardState = readonly [
 
 export type CellIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
+/** A single move recorded when transitioning between board snapshots. */
+export type Move = {
+  readonly player: Player;
+  readonly cellIndex: CellIndex;
+};
+
 export type WinningLine = readonly [CellIndex, CellIndex, CellIndex];
 
 export type GameStatus =
