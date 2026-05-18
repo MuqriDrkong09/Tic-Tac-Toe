@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -10,54 +16,59 @@ import Typography from "@mui/material/Typography";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
+import RedoRoundedIcon from "@mui/icons-material/RedoRounded";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
+import UndoRoundedIcon from "@mui/icons-material/UndoRounded";
 import Board from "./Board.tsx";
 import MoveHistory from "./MoveHistory.tsx";
 import Scoreboard from "./Scoreboard.tsx";
 import StatusBar from "./StatusBar.tsx";
-import { applyMove, getGameStatus } from "../gameLogic.ts";
+import { getGameStatus } from "../gameLogic.ts";
 import {
-  EMPTY_BOARD,
-  type BoardState,
-  type CellIndex,
-  type Scoreboard as ScoreboardType,
-} from "../types.ts";
+  INITIAL_GAME_HISTORY,
+  canRedo,
+  canUndo,
+  gameReducer,
+  isAtLatestStep,
+  selectBoard,
+  type GameAction,
+} from "../gameReducer.ts";
+import type { CellIndex, Scoreboard as ScoreboardType } from "../types.ts";
 
 const INITIAL_SCORE: ScoreboardType = { X: 0, O: 0, draws: 0 };
 
 const HISTORY_DRAWER_WIDTH = 300;
 
-type GameHistoryState = {
-  history: BoardState[];
-  currentStep: number;
-};
-
-const INITIAL_GAME_HISTORY: GameHistoryState = {
-  history: [EMPTY_BOARD],
-  currentStep: 0,
+const isEditableTarget = (target: EventTarget | null): boolean => {
+  if (!(target instanceof HTMLElement)) return false;
+  const tag = target.tagName;
+  return (
+    tag === "INPUT" ||
+    tag === "TEXTAREA" ||
+    tag === "SELECT" ||
+    target.isContentEditable
+  );
 };
 
 /**
  * Top-level game component.
  *
- * State model:
- *  - `history` + `currentStep` : board snapshots for time travel.
- *    The visible board is always `history[currentStep]`.
- *  - `score`                   : persistent X/O/draw tallies across rounds.
- *  - Everything else (next player, winner, line) is *derived* via
- *    `getGameStatus(board)` so the UI can never drift out of sync.
- *
- * Making a move while viewing a past step truncates future history and
- * branches from that point (classic React tic-tac-toe behaviour).
+ * Board timeline is managed by `gameReducer` (history + currentStep).
+ * Undo/redo move the step pointer; PLAY_MOVE truncates when branching.
  */
 export default function Game() {
-  const [{ history, currentStep }, setGameHistory] =
-    useState<GameHistoryState>(INITIAL_GAME_HISTORY);
+  const [gameState, dispatch] = useReducer(
+    gameReducer,
+    INITIAL_GAME_HISTORY,
+  );
   const [score, setScore] = useState<ScoreboardType>(INITIAL_SCORE);
   const [historyOpen, setHistoryOpen] = useState(false);
 
-  const board = history[currentStep];
-  const isAtLatestStep = currentStep === history.length - 1;
+  const { history, currentStep } = gameState;
+  const board = selectBoard(gameState);
+  const atLatest = isAtLatestStep(gameState);
+  const undoAvailable = canUndo(gameState);
+  const redoAvailable = canRedo(gameState);
   const moveCount = history.length - 1;
 
   const status = getGameStatus(board);
@@ -67,8 +78,15 @@ export default function Game() {
   const countedRef = useRef(false);
   const newGameButtonRef = useRef<HTMLButtonElement | null>(null);
 
+  const dispatchGame = useCallback((action: GameAction) => {
+    if (action.type === "PLAY_MOVE" || action.type === "NEW_GAME") {
+      countedRef.current = false;
+    }
+    dispatch(action);
+  }, []);
+
   useEffect(() => {
-    if (!isAtLatestStep || countedRef.current) return;
+    if (!atLatest || countedRef.current) return;
     if (status.kind === "won") {
       const winner = status.winner;
       setScore((prev) => ({ ...prev, [winner]: prev[winner] + 1 }));
@@ -77,47 +95,51 @@ export default function Game() {
       setScore((prev) => ({ ...prev, draws: prev.draws + 1 }));
       countedRef.current = true;
     }
-  }, [status, isAtLatestStep]);
+  }, [status, atLatest]);
 
   useEffect(() => {
-    if (isGameOver && isAtLatestStep) {
+    if (isGameOver && atLatest) {
       newGameButtonRef.current?.focus();
     }
-  }, [isGameOver, isAtLatestStep]);
+  }, [isGameOver, atLatest]);
 
-  const handleCellClick = useCallback((index: CellIndex) => {
-    setGameHistory(({ history: prevHistory, currentStep: prevStep }) => {
-      const currentBoard = prevHistory[prevStep];
-      const currentStatus = getGameStatus(currentBoard);
-      if (currentStatus.kind !== "in_progress") {
-        return { history: prevHistory, currentStep: prevStep };
-      }
-      if (currentBoard[index] !== null) {
-        return { history: prevHistory, currentStep: prevStep };
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (isEditableTarget(event.target)) return;
+
+      const mod = event.ctrlKey || event.metaKey;
+      if (!mod) return;
+
+      const key = event.key.toLowerCase();
+
+      if (key === "z" && !event.shiftKey && undoAvailable) {
+        event.preventDefault();
+        dispatch({ type: "UNDO" });
+        return;
       }
 
-      const nextBoard = applyMove(
-        currentBoard,
-        index,
-        currentStatus.nextPlayer,
-      );
-      const nextHistory = [
-        ...prevHistory.slice(0, prevStep + 1),
-        nextBoard,
-      ];
-      countedRef.current = false;
-      return {
-        history: nextHistory,
-        currentStep: nextHistory.length - 1,
-      };
-    });
-  }, []);
+      if (
+        (key === "z" && event.shiftKey && redoAvailable) ||
+        (key === "y" && redoAvailable)
+      ) {
+        event.preventDefault();
+        dispatch({ type: "REDO" });
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [undoAvailable, redoAvailable]);
+
+  const handleCellClick = useCallback(
+    (index: CellIndex) => {
+      dispatchGame({ type: "PLAY_MOVE", index });
+    },
+    [dispatchGame],
+  );
 
   const handleJumpToStep = useCallback((step: number) => {
-    setGameHistory((prev) => ({
-      ...prev,
-      currentStep: Math.max(0, Math.min(step, prev.history.length - 1)),
-    }));
+    dispatch({ type: "JUMP_TO_STEP", step });
   }, []);
 
   const handleJumpToStepFromDrawer = useCallback(
@@ -128,18 +150,24 @@ export default function Game() {
     [handleJumpToStep],
   );
 
-  const handleNewGame = useCallback(() => {
-    setGameHistory(INITIAL_GAME_HISTORY);
-    countedRef.current = false;
-    setHistoryOpen(false);
+  const handleUndo = useCallback(() => {
+    dispatch({ type: "UNDO" });
   }, []);
 
-  const handleResetAll = useCallback(() => {
-    setGameHistory(INITIAL_GAME_HISTORY);
-    setScore(INITIAL_SCORE);
-    countedRef.current = false;
-    setHistoryOpen(false);
+  const handleRedo = useCallback(() => {
+    dispatch({ type: "REDO" });
   }, []);
+
+  const handleNewGame = useCallback(() => {
+    dispatchGame({ type: "NEW_GAME" });
+    setHistoryOpen(false);
+  }, [dispatchGame]);
+
+  const handleResetAll = useCallback(() => {
+    dispatchGame({ type: "NEW_GAME" });
+    setScore(INITIAL_SCORE);
+    setHistoryOpen(false);
+  }, [dispatchGame]);
 
   return (
     <Box
@@ -186,6 +214,45 @@ export default function Game() {
         disabled={isGameOver}
         onCellClick={handleCellClick}
       />
+
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={1.5}
+        sx={{ width: "100%" }}
+      >
+        <Tooltip title="Undo (Ctrl+Z)">
+          <span style={{ flex: 1, display: "flex" }}>
+            <Button
+              variant="outlined"
+              color="inherit"
+              size="large"
+              startIcon={<UndoRoundedIcon />}
+              onClick={handleUndo}
+              disabled={!undoAvailable}
+              fullWidth
+              aria-label="Undo last move"
+            >
+              Undo
+            </Button>
+          </span>
+        </Tooltip>
+        <Tooltip title="Redo (Ctrl+Shift+Z)">
+          <span style={{ flex: 1, display: "flex" }}>
+            <Button
+              variant="outlined"
+              color="inherit"
+              size="large"
+              startIcon={<RedoRoundedIcon />}
+              onClick={handleRedo}
+              disabled={!redoAvailable}
+              fullWidth
+              aria-label="Redo move"
+            >
+              Redo
+            </Button>
+          </span>
+        </Tooltip>
+      </Stack>
 
       <Stack
         direction={{ xs: "column", sm: "row" }}

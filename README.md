@@ -17,7 +17,20 @@ A polished Tic-Tac-Toe game built with **React 18**, **TypeScript**, **MUI Mater
 - Fully responsive layout (works on mobile and desktop)
 - Smooth micro-animations (cell pop, card entrance, board state transitions)
 - Keyboard-accessible (auto-focus on "New game" after a round ends)
+- Move history drawer with click-to-jump time travel
+- Undo / redo via buttons or keyboard shortcuts
 - Strongly typed throughout — `BoardState` is a fixed-length 9-tuple, `GameStatus` is a discriminated union
+
+## Keyboard shortcuts
+
+Undo and redo walk backward and forward through the move timeline (the same history shown in the move-history drawer). Shortcuts are ignored while focus is in a text field.
+
+| Action | Windows / Linux | macOS |
+|---|---|---|
+| **Undo** | `Ctrl` + `Z` | `Cmd` + `Z` |
+| **Redo** | `Ctrl` + `Shift` + `Z` or `Ctrl` + `Y` | `Cmd` + `Shift` + `Z` |
+
+Undo is only available when you can step back (after at least one move). Redo is only available when you have previously undone and have future moves to restore.
 
 ## Architecture
 
@@ -28,8 +41,10 @@ src/
 ├── theme.ts                  createAppTheme(mode) factory
 ├── types.ts                  Player, Cell, BoardState, GameStatus, WinningLine, ...
 ├── gameLogic.ts              Pure utilities: calculateWinner, getGameStatus, applyMove
+├── gameReducer.ts            History-aware reducer (PLAY_MOVE, UNDO, REDO, JUMP_TO_STEP)
 └── components/
-    ├── Game.tsx              Stateful container, score tracking, reset controls
+    ├── Game.tsx              Stateful container, score tracking, undo/redo, reset controls
+    ├── MoveHistory.tsx       Move list for time-travel (opened from menu drawer)
     ├── Board.tsx             3x3 CSS grid + WinningLine overlay
     ├── Square.tsx            Animated MUI ButtonBase cell
     ├── StatusBar.tsx         Player / Winner / Draw banner with icons
@@ -39,7 +54,7 @@ src/
 
 ### Key design decisions
 
-- **Single source of truth.** The Game component only stores `board` in React state. Whose turn it is, the winner, the winning line, and the game-over flag are all *derived* via `getGameStatus(board)` on every render, eliminating any drift between state and UI.
+- **Single source of truth.** The Game component stores a board timeline (`history` + `currentStep`) via `gameReducer`. Whose turn it is, the winner, the winning line, and the game-over flag are all *derived* from the visible snapshot via `getGameStatus(board)` on every render.
 - **Pure logic.** All game rules live in `gameLogic.ts` as side-effect-free functions, making them trivially testable and reusable.
 - **Discriminated `GameStatus` union.** `{ kind: 'in_progress' | 'won' | 'draw', ... }` lets the UI exhaustively switch with full type narrowing.
 - **Ref-guarded score increment.** A `useRef` flag ensures a round is tallied exactly once, safe against React StrictMode's dev double-invocation.
