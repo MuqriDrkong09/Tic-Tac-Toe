@@ -42,6 +42,7 @@ import {
   type Player,
   type Scoreboard as ScoreboardType,
 } from "../types.ts";
+import { fireWinConfetti } from "../confetti.ts";
 import { getGameStatus } from "../gameLogic.ts";
 import { useSound } from "../SoundContext.tsx";
 import Board from "./Board.tsx";
@@ -150,6 +151,7 @@ export default function GameSession({
     if (!atLatest || outcomeSoundPlayedRef.current) return;
     if (status.kind === "won") {
       playWin();
+      fireWinConfetti();
       outcomeSoundPlayedRef.current = true;
     } else if (status.kind === "draw") {
       playDraw();

@@ -33,6 +33,7 @@ A polished tic-tac-toe game with **3×3**, **4×4**, and **5×5** boards, built 
 - **Responsive layout** — cell sizes scale per board dimension; board scrolls on small screens when needed
 - **Micro-animations** — cell pop on place, card entrance, “thinking…” indicator during AI turns
 - **Sound effects** — click on move, fanfare on win, soft tick on draw; mute toggle in the header (saved to `localStorage`; off by default when `prefers-reduced-motion` is set)
+- **Confetti on win** — short celebratory burst when someone wins; skipped when `prefers-reduced-motion` is set
 - **Accessibility** — keyboard shortcuts, ARIA labels, focus on **New game** after a round ends
 
 ### Technical

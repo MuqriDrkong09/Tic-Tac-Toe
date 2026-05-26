@@ -49,7 +49,7 @@ Delightful touches that don't add gameplay but lift the feel.
 - [ ] **PWA support** — add `manifest.json` and a service worker
   via `vite-plugin-pwa`. Installable on desktop / mobile, plays
   offline.
-- [ ] **Confetti burst on win** — using a lightweight library
+- [x] **Confetti burst on win** — using a lightweight library
   (e.g. `canvas-confetti`) or a hand-rolled canvas animation.
   Skip entirely if `prefers-reduced-motion` is set.
 - [ ] **Internationalisation (i18n)** — `react-i18next`. Ship English
