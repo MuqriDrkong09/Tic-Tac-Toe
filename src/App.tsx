@@ -11,7 +11,10 @@ import { ThemeProvider, type PaletteMode } from "@mui/material/styles";
 import { keyframes } from "@mui/system";
 import DarkModeRoundedIcon from "@mui/icons-material/DarkModeRounded";
 import LightModeRoundedIcon from "@mui/icons-material/LightModeRounded";
+import VolumeOffRoundedIcon from "@mui/icons-material/VolumeOffRounded";
+import VolumeUpRoundedIcon from "@mui/icons-material/VolumeUpRounded";
 import Game from "./components/Game.tsx";
+import { SoundProvider, useSound } from "./SoundContext.tsx";
 import { createAppTheme } from "./theme.ts";
 
 const COLOR_MODE_STORAGE_KEY = "tic-tac-toe-color-mode";
@@ -44,6 +47,74 @@ const getInitialMode = (): PaletteMode => {
   return "light";
 };
 
+function AppHeader({
+  mode,
+  onToggleMode,
+}: {
+  mode: PaletteMode;
+  onToggleMode: () => void;
+}) {
+  const { soundEnabled, toggleSound } = useSound();
+
+  return (
+    <Stack
+      direction="row"
+      alignItems="center"
+      justifyContent="space-between"
+      sx={{ mb: 2 }}
+    >
+      <Typography variant="h1" color="primary" sx={{ flexGrow: 1 }}>
+        Tic-Tac-Toe
+      </Typography>
+      <Stack direction="row" spacing={0.5}>
+        <Tooltip
+          title={soundEnabled ? "Mute sound effects" : "Enable sound effects"}
+        >
+          <IconButton
+            onClick={toggleSound}
+            color="inherit"
+            aria-label={soundEnabled ? "Mute sound effects" : "Enable sound effects"}
+            aria-pressed={soundEnabled}
+            sx={{
+              color: "text.secondary",
+              bgcolor: "action.hover",
+              "&:hover": { bgcolor: "action.selected" },
+            }}
+          >
+            {soundEnabled ? (
+              <VolumeUpRoundedIcon />
+            ) : (
+              <VolumeOffRoundedIcon />
+            )}
+          </IconButton>
+        </Tooltip>
+        <Tooltip
+          title={
+            mode === "light" ? "Switch to dark mode" : "Switch to light mode"
+          }
+        >
+          <IconButton
+            onClick={onToggleMode}
+            color="inherit"
+            aria-label="Toggle color mode"
+            sx={{
+              color: "text.secondary",
+              bgcolor: "action.hover",
+              "&:hover": { bgcolor: "action.selected" },
+            }}
+          >
+            {mode === "light" ? (
+              <DarkModeRoundedIcon />
+            ) : (
+              <LightModeRoundedIcon />
+            )}
+          </IconButton>
+        </Tooltip>
+      </Stack>
+    </Stack>
+  );
+}
+
 export default function App() {
   const [mode, setMode] = useState<PaletteMode>(getInitialMode);
 
@@ -63,62 +134,33 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          bgcolor: "background.default",
-          py: 4,
-          px: 2,
-        }}
-      >
-        <Container maxWidth="md" disableGutters>
-          <Paper
-            elevation={3}
-            sx={{
-              p: { xs: 3, sm: 4 },
-              borderRadius: 3,
-              animation: `${fadeUp} 420ms cubic-bezier(0.2, 0.8, 0.2, 1)`,
-            }}
-          >
-            <Stack
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-              sx={{ mb: 2 }}
+      <SoundProvider>
+        <Box
+          sx={{
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            bgcolor: "background.default",
+            py: 4,
+            px: 2,
+          }}
+        >
+          <Container maxWidth="md" disableGutters>
+            <Paper
+              elevation={3}
+              sx={{
+                p: { xs: 3, sm: 4 },
+                borderRadius: 3,
+                animation: `${fadeUp} 420ms cubic-bezier(0.2, 0.8, 0.2, 1)`,
+              }}
             >
-              <Typography variant="h1" color="primary" sx={{ flexGrow: 1 }}>
-                Tic-Tac-Toe
-              </Typography>
-              <Tooltip
-                title={
-                  mode === "light" ? "Switch to dark mode" : "Switch to light mode"
-                }
-              >
-                <IconButton
-                  onClick={toggleMode}
-                  color="inherit"
-                  aria-label="Toggle color mode"
-                  sx={{
-                    color: "text.secondary",
-                    bgcolor: "action.hover",
-                    "&:hover": { bgcolor: "action.selected" },
-                  }}
-                >
-                  {mode === "light" ? (
-                    <DarkModeRoundedIcon />
-                  ) : (
-                    <LightModeRoundedIcon />
-                  )}
-                </IconButton>
-              </Tooltip>
-            </Stack>
-            <Game />
-          </Paper>
-        </Container>
-      </Box>
+              <AppHeader mode={mode} onToggleMode={toggleMode} />
+              <Game />
+            </Paper>
+          </Container>
+        </Box>
+      </SoundProvider>
     </ThemeProvider>
   );
 }

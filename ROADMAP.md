@@ -42,7 +42,7 @@ Meaningful new functionality.
 
 Delightful touches that don't add gameplay but lift the feel.
 
-- [ ] **Sound effects** — soft click on cell place, fanfare on win,
+- [x] **Sound effects** — soft click on cell place, fanfare on win,
   tick on draw. Toggleable in settings, preference persisted to
   `localStorage`. Honour `prefers-reduced-motion` / a "sound off"
   default for accessibility.

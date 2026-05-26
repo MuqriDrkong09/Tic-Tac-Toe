@@ -32,6 +32,7 @@ A polished tic-tac-toe game with **3×3**, **4×4**, and **5×5** boards, built 
 - **Dark / light mode** — toggle in the header; respects `prefers-color-scheme` and persists to `localStorage`
 - **Responsive layout** — cell sizes scale per board dimension; board scrolls on small screens when needed
 - **Micro-animations** — cell pop on place, card entrance, “thinking…” indicator during AI turns
+- **Sound effects** — click on move, fanfare on win, soft tick on draw; mute toggle in the header (saved to `localStorage`; off by default when `prefers-reduced-motion` is set)
 - **Accessibility** — keyboard shortcuts, ARIA labels, focus on **New game** after a round ends
 
 ### Technical
@@ -75,6 +76,9 @@ src/
 ├── gameLogic.ts              calculateWinner, getGameStatus, applyMove, getMoveAtStep
 ├── gameReducer.ts            History timeline: PLAY_MOVE, UNDO, REDO, JUMP_TO_STEP, NEW_GAME, RESET
 ├── ai.ts                     pickAiMove, isAiTurn (easy / medium / hard + minimax)
+├── soundSettings.ts          localStorage + reduced-motion default for sound
+├── soundEffects.ts           Web Audio synthesized move / win / draw SFX
+├── SoundContext.tsx          Global sound toggle and play helpers
 └── components/
     ├── Game.tsx              Setup ↔ playing phases; session score state
     ├── PreGameSetup.tsx      Board size, mode, AI options, names

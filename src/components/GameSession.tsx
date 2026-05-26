@@ -43,6 +43,7 @@ import {
   type Scoreboard as ScoreboardType,
 } from "../types.ts";
 import { getGameStatus } from "../gameLogic.ts";
+import { useSound } from "../SoundContext.tsx";
 import Board from "./Board.tsx";
 import MoveHistory from "./MoveHistory.tsx";
 import Scoreboard from "./Scoreboard.tsx";
@@ -115,7 +116,11 @@ export default function GameSession({
     [config],
   );
 
+  const { playMove, playWin, playDraw } = useSound();
+
   const countedRef = useRef(false);
+  const outcomeSoundPlayedRef = useRef(false);
+  const prevMoveCountRef = useRef(moveCount);
   const newGameButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const dispatchGame = useCallback((action: GameAction) => {
@@ -125,9 +130,32 @@ export default function GameSession({
       action.type === "RESET"
     ) {
       countedRef.current = false;
+      outcomeSoundPlayedRef.current = false;
     }
     dispatch(action);
   }, []);
+
+  useEffect(() => {
+    if (!atLatest) {
+      prevMoveCountRef.current = moveCount;
+      return;
+    }
+    if (moveCount > prevMoveCountRef.current) {
+      playMove();
+    }
+    prevMoveCountRef.current = moveCount;
+  }, [moveCount, atLatest, playMove]);
+
+  useEffect(() => {
+    if (!atLatest || outcomeSoundPlayedRef.current) return;
+    if (status.kind === "won") {
+      playWin();
+      outcomeSoundPlayedRef.current = true;
+    } else if (status.kind === "draw") {
+      playDraw();
+      outcomeSoundPlayedRef.current = true;
+    }
+  }, [status, atLatest, playWin, playDraw]);
 
   useEffect(() => {
     if (!atLatest || countedRef.current) return;
