@@ -52,8 +52,8 @@ Delightful touches that don't add gameplay but lift the feel.
 - [x] **Confetti burst on win** — using a lightweight library
   (e.g. `canvas-confetti`) or a hand-rolled canvas animation.
   Skip entirely if `prefers-reduced-motion` is set.
-- [ ] **Internationalisation (i18n)** — `react-i18next`. Ship English
-  plus one or two extra locales (e.g. Malay, Spanish).
+- [x] **Internationalisation (i18n)** — `react-i18next`. Ship English
+  plus Malay (English + Bahasa Melayu shipped).
 
 ## Stretch goals
 

@@ -34,6 +34,7 @@ A polished tic-tac-toe game with **3×3**, **4×4**, and **5×5** boards, built 
 - **Micro-animations** — cell pop on place, card entrance, “thinking…” indicator during AI turns
 - **Sound effects** — click on move, fanfare on win, soft tick on draw; mute toggle in the header (saved to `localStorage`; off by default when `prefers-reduced-motion` is set)
 - **Confetti on win** — short celebratory burst when someone wins; skipped when `prefers-reduced-motion` is set
+- **Languages** — English and Bahasa Melayu; globe icon in the header; preference saved to `localStorage`
 - **Accessibility** — keyboard shortcuts, ARIA labels, focus on **New game** after a round ends
 
 ### Technical
@@ -80,6 +81,7 @@ src/
 ├── soundSettings.ts          localStorage + reduced-motion default for sound
 ├── soundEffects.ts           Web Audio synthesized move / win / draw SFX
 ├── SoundContext.tsx          Global sound toggle and play helpers
+├── i18n/                     react-i18next setup + locale JSON (en, ms)
 └── components/
     ├── Game.tsx              Setup ↔ playing phases; session score state
     ├── PreGameSetup.tsx      Board size, mode, AI options, names

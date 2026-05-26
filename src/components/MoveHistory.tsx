@@ -4,8 +4,9 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import Typography from "@mui/material/Typography";
 import HistoryRoundedIcon from "@mui/icons-material/HistoryRounded";
+import { useTranslation } from "react-i18next";
 import { formatCellPosition, getMoveAtStep } from "../gameLogic.ts";
-import type { BoardState, Player } from "../types.ts";
+import type { BoardState } from "../types.ts";
 
 export type MoveHistoryProps = {
   history: readonly BoardState[];
@@ -15,15 +16,13 @@ export type MoveHistoryProps = {
   embedded?: boolean;
 };
 
-const playerColor = (player: Player) =>
-  player === "X" ? "primary.main" : "secondary.main";
-
 export default function MoveHistory({
   history,
   currentStep,
   onJumpToStep,
   embedded = false,
 }: MoveHistoryProps) {
+  const { t } = useTranslation();
   const isViewingPast = currentStep < history.length - 1;
 
   return (
@@ -58,7 +57,7 @@ export default function MoveHistory({
         >
           <HistoryRoundedIcon fontSize="small" color="action" />
           <Typography variant="subtitle2" fontWeight={700}>
-            Move history
+            {t("history.title")}
           </Typography>
         </Box>
       )}
@@ -75,7 +74,10 @@ export default function MoveHistory({
             borderColor: "divider",
           }}
         >
-          Viewing move {currentStep} of {history.length - 1}
+          {t("history.viewing", {
+            current: currentStep,
+            total: history.length - 1,
+          })}
         </Typography>
       )}
 
@@ -87,7 +89,7 @@ export default function MoveHistory({
           flex: 1,
           py: 0.5,
         }}
-        aria-label="Move history"
+        aria-label={t("history.aria")}
       >
         <ListItemButton
           selected={currentStep === 0}
@@ -95,7 +97,7 @@ export default function MoveHistory({
           sx={{ py: 0.75 }}
         >
           <ListItemText
-            primary="Game start"
+            primary={t("history.gameStart")}
             primaryTypographyProps={{ variant: "body2" }}
           />
         </ListItemButton>
@@ -105,21 +107,6 @@ export default function MoveHistory({
           const move = getMoveAtStep(history, step);
           if (move === null) return null;
 
-          const label = (
-            <>
-              <Box
-                component="span"
-                sx={{ color: playerColor(move.player), fontWeight: 800 }}
-              >
-                {move.player}
-              </Box>
-              {" → cell "}
-              <Box component="span" sx={{ fontWeight: 700 }}>
-                {formatCellPosition(move.cellIndex)}
-              </Box>
-            </>
-          );
-
           return (
             <ListItemButton
               key={step}
@@ -128,8 +115,11 @@ export default function MoveHistory({
               sx={{ py: 0.75 }}
             >
               <ListItemText
-                primary={label}
-                secondary={`Move ${step}`}
+                primary={t("history.moveToCell", {
+                  player: move.player,
+                  cell: formatCellPosition(move.cellIndex),
+                })}
+                secondary={t("history.move", { step })}
                 primaryTypographyProps={{ variant: "body2" }}
                 secondaryTypographyProps={{ variant: "caption" }}
               />

@@ -1,6 +1,7 @@
 import Box from "@mui/material/Box";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import { useTranslation } from "react-i18next";
 import { getCellDimensions } from "../boardRules.ts";
 import type { BoardRules } from "../boardRules.ts";
 import type { BoardState, CellIndex, WinningLine as WinningLineType } from "../types.ts";
@@ -22,6 +23,7 @@ export default function Board({
   onCellClick,
   disabled = false,
 }: BoardProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isSm = useMediaQuery(theme.breakpoints.up("sm"));
   const dims = getCellDimensions(rules.size, isSm);
@@ -33,7 +35,7 @@ export default function Board({
   return (
     <Box
       role="grid"
-      aria-label={`${size} by ${size} tic-tac-toe board`}
+      aria-label={t("board.aria", { size })}
       sx={{
         position: "relative",
         display: "grid",

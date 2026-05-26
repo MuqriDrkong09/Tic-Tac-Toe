@@ -1,0 +1,89 @@
+{
+  "app": {
+    "title": "Tic-Tac-Toe"
+  },
+  "header": {
+    "muteSound": "Mute sound effects",
+    "enableSound": "Enable sound effects",
+    "darkMode": "Switch to dark mode",
+    "lightMode": "Switch to light mode",
+    "language": "Language",
+    "languageMenu": "Choose language"
+  },
+  "languages": {
+    "en": "English",
+    "ms": "Bahasa Melayu"
+  },
+  "defaults": {
+    "player1": "Player 1",
+    "player2": "Player 2",
+    "you": "You",
+    "computer": "Computer",
+    "playerX": "Player X",
+    "playerO": "Player O"
+  },
+  "setup": {
+    "title": "New game",
+    "intro": "Choose board size and mode. X always takes the first move; you need {{count}} in a row to win on a {{size}}×{{size}} board.",
+    "boardSize": "Board size",
+    "boardSizeAria": "Board size",
+    "mode": "Mode",
+    "modeAria": "Game mode",
+    "pvp": "2 players",
+    "vsAi": "vs Computer",
+    "aiDifficulty": "AI difficulty",
+    "aiEasy": "Easy — random",
+    "aiMedium": "Medium — blocks & attacks",
+    "aiHard": "Hard — unbeatable on 3×3, strong on larger boards",
+    "youPlayAs": "You play as",
+    "yourSideAria": "Your side",
+    "playX": "X (go first)",
+    "playO": "O (go second)",
+    "playerNames": "Player names",
+    "playerX": "Player X",
+    "playerO": "Player O",
+    "startGame": "Start game"
+  },
+  "game": {
+    "undo": "Undo",
+    "redo": "Redo",
+    "undoTooltip": "Undo (Ctrl+Z)",
+    "redoTooltip": "Redo (Ctrl+Shift+Z)",
+    "undoAria": "Undo last move",
+    "redoAria": "Redo move",
+    "newGame": "New game",
+    "setup": "Setup",
+    "resetAll": "Reset all",
+    "moveHistory": "Move history",
+    "openHistoryAria": "Open move history",
+    "closeHistoryAria": "Close move history",
+    "historyTooltip": "Move history",
+    "aiThinking": "{{name}} is thinking…"
+  },
+  "status": {
+    "turn": "{{name}}'s turn",
+    "wins": "{{name}} wins!",
+    "draw": "It's a draw",
+    "playerAria": "Player {{player}}"
+  },
+  "scoreboard": {
+    "aria": "Scoreboard",
+    "wins": "{{name}} wins",
+    "draws": "Draws"
+  },
+  "history": {
+    "title": "Move history",
+    "aria": "Move history",
+    "viewing": "Viewing move {{current}} of {{total}}",
+    "gameStart": "Game start",
+    "move": "Move {{step}}",
+    "moveToCell": "{{player}} → cell {{cell}}"
+  },
+  "board": {
+    "aria": "{{size}} by {{size}} tic-tac-toe board"
+  },
+  "square": {
+    "empty": "Empty cell",
+    "occupied": "Cell with {{value}}"
+  }
+}

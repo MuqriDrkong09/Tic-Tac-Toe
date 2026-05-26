@@ -14,8 +14,10 @@ import LightModeRoundedIcon from "@mui/icons-material/LightModeRounded";
 import VolumeOffRoundedIcon from "@mui/icons-material/VolumeOffRounded";
 import VolumeUpRoundedIcon from "@mui/icons-material/VolumeUpRounded";
 import Game from "./components/Game.tsx";
+import LanguageSwitcher from "./i18n/LanguageSwitcher.tsx";
 import { SoundProvider, useSound } from "./SoundContext.tsx";
 import { createAppTheme } from "./theme.ts";
+import { useTranslation } from "react-i18next";
 
 const COLOR_MODE_STORAGE_KEY = "tic-tac-toe-color-mode";
 
@@ -54,6 +56,7 @@ function AppHeader({
   mode: PaletteMode;
   onToggleMode: () => void;
 }) {
+  const { t } = useTranslation();
   const { soundEnabled, toggleSound } = useSound();
 
   return (
@@ -64,16 +67,21 @@ function AppHeader({
       sx={{ mb: 2 }}
     >
       <Typography variant="h1" color="primary" sx={{ flexGrow: 1 }}>
-        Tic-Tac-Toe
+        {t("app.title")}
       </Typography>
       <Stack direction="row" spacing={0.5}>
+        <LanguageSwitcher />
         <Tooltip
-          title={soundEnabled ? "Mute sound effects" : "Enable sound effects"}
+          title={
+            soundEnabled ? t("header.muteSound") : t("header.enableSound")
+          }
         >
           <IconButton
             onClick={toggleSound}
             color="inherit"
-            aria-label={soundEnabled ? "Mute sound effects" : "Enable sound effects"}
+            aria-label={
+              soundEnabled ? t("header.muteSound") : t("header.enableSound")
+            }
             aria-pressed={soundEnabled}
             sx={{
               color: "text.secondary",
@@ -89,14 +97,14 @@ function AppHeader({
           </IconButton>
         </Tooltip>
         <Tooltip
-          title={
-            mode === "light" ? "Switch to dark mode" : "Switch to light mode"
-          }
+          title={mode === "light" ? t("header.darkMode") : t("header.lightMode")}
         >
           <IconButton
             onClick={onToggleMode}
             color="inherit"
-            aria-label="Toggle color mode"
+            aria-label={
+              mode === "light" ? t("header.darkMode") : t("header.lightMode")
+            }
             sx={{
               color: "text.secondary",
               bgcolor: "action.hover",
@@ -130,6 +138,12 @@ export default function App() {
 
   const toggleMode = () =>
     setMode((current) => (current === "light" ? "dark" : "light"));
+
+  const { t, i18n } = useTranslation();
+
+  useEffect(() => {
+    document.title = t("app.title");
+  }, [t, i18n.language]);
 
   return (
     <ThemeProvider theme={theme}>

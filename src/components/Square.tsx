@@ -1,6 +1,7 @@
 import ButtonBase from "@mui/material/ButtonBase";
 import Box from "@mui/material/Box";
 import { keyframes } from "@mui/system";
+import { useTranslation } from "react-i18next";
 import type { Cell } from "../types.ts";
 
 /**
@@ -32,6 +33,7 @@ export default function Square({
   isWinning = false,
   disabled = false,
 }: SquareProps) {
+  const { t } = useTranslation();
   // cellSize is in px; mark ~50% of cell height (numeric = px in MUI).
   const fontSizePx = Math.max(22, cellSize * 0.5);
   const isOccupied = value !== null;
@@ -42,7 +44,11 @@ export default function Square({
       onClick={onClick}
       disabled={isDisabled}
       focusRipple
-      aria-label={value === null ? "Empty cell" : `Cell with ${value}`}
+      aria-label={
+        value === null
+          ? t("square.empty")
+          : t("square.occupied", { value })
+      }
       sx={{
         width: cellSize,
         height: cellSize,

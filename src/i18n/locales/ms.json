@@ -1,0 +1,89 @@
+{
+  "app": {
+    "title": "Tic-Tac-Toe"
+  },
+  "header": {
+    "muteSound": "Senyapkan kesan bunyi",
+    "enableSound": "Dayakan kesan bunyi",
+    "darkMode": "Tukar ke mod gelap",
+    "lightMode": "Tukar ke mod cerah",
+    "language": "Bahasa",
+    "languageMenu": "Pilih bahasa"
+  },
+  "languages": {
+    "en": "English",
+    "ms": "Bahasa Melayu"
+  },
+  "defaults": {
+    "player1": "Pemain 1",
+    "player2": "Pemain 2",
+    "you": "Anda",
+    "computer": "Komputer",
+    "playerX": "Pemain X",
+    "playerO": "Pemain O"
+  },
+  "setup": {
+    "title": "Permainan baharu",
+    "intro": "Pilih saiz papan dan mod. X sentiasa bermain dahulu; anda perlukan {{count}} berturut-turut untuk menang pada papan {{size}}×{{size}}.",
+    "boardSize": "Saiz papan",
+    "boardSizeAria": "Saiz papan",
+    "mode": "Mod",
+    "modeAria": "Mod permainan",
+    "pvp": "2 pemain",
+    "vsAi": "lawan Komputer",
+    "aiDifficulty": "Kesukaran AI",
+    "aiEasy": "Mudah — rawak",
+    "aiMedium": "Sederhana — halang & serang",
+    "aiHard": "Sukar — tidak boleh dikalahkan pada 3×3, kuat pada papan besar",
+    "youPlayAs": "Anda bermain sebagai",
+    "yourSideAria": "Pihak anda",
+    "playX": "X (mula dahulu)",
+    "playO": "O (mula kedua)",
+    "playerNames": "Nama pemain",
+    "playerX": "Pemain X",
+    "playerO": "Pemain O",
+    "startGame": "Mula permainan"
+  },
+  "game": {
+    "undo": "Buat asal",
+    "redo": "Buat semula",
+    "undoTooltip": "Buat asal (Ctrl+Z)",
+    "redoTooltip": "Buat semula (Ctrl+Shift+Z)",
+    "undoAria": "Buat asal langkah terakhir",
+    "redoAria": "Buat semula langkah",
+    "newGame": "Permainan baharu",
+    "setup": "Tetapan",
+    "resetAll": "Set semula semua",
+    "moveHistory": "Sejarah langkah",
+    "openHistoryAria": "Buka sejarah langkah",
+    "closeHistoryAria": "Tutup sejarah langkah",
+    "historyTooltip": "Sejarah langkah",
+    "aiThinking": "{{name}} sedang berfikir…"
+  },
+  "status": {
+    "turn": "Giliran {{name}}",
+    "wins": "{{name}} menang!",
+    "draw": "Seri",
+    "playerAria": "Pemain {{player}}"
+  },
+  "scoreboard": {
+    "aria": "Papan skor",
+    "wins": "{{name}} menang",
+    "draws": "Seri"
+  },
+  "history": {
+    "title": "Sejarah langkah",
+    "aria": "Sejarah langkah",
+    "viewing": "Melihat langkah {{current}} daripada {{total}}",
+    "gameStart": "Permulaan permainan",
+    "move": "Langkah {{step}}",
+    "moveToCell": "{{player}} → sel {{cell}}"
+  },
+  "board": {
+    "aria": "Papan tic-tac-toe {{size}}×{{size}}"
+  },
+  "square": {
+    "empty": "Sel kosong",
+    "occupied": "Sel dengan {{value}}"
+  }
+}

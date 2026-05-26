@@ -12,6 +12,8 @@ import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Typography from "@mui/material/Typography";
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
+import { useTranslation } from "react-i18next";
+import i18n from "../i18n/index.ts";
 import type {
   AiDifficulty,
   BoardSize,
@@ -34,17 +36,9 @@ type SetupForm = {
   nameO: string;
 };
 
-const DEFAULT_PVP_NAMES = { nameX: "Player 1", nameO: "Player 2" } as const;
-
-const buildConfig = (form: SetupForm): GameConfig => ({
-  gameMode: form.gameMode,
-  boardSize: form.boardSize,
-  aiDifficulty: form.aiDifficulty,
-  humanPlayer: form.humanPlayer,
-  names: {
-    X: form.nameX.trim() || "Player X",
-    O: form.nameO.trim() || "Player O",
-  },
+const defaultPvpNames = () => ({
+  nameX: i18n.t("defaults.player1"),
+  nameO: i18n.t("defaults.player2"),
 });
 
 const formFromConfig = (config: GameConfig | null | undefined): SetupForm => {
@@ -54,7 +48,7 @@ const formFromConfig = (config: GameConfig | null | undefined): SetupForm => {
       boardSize: 3,
       aiDifficulty: "medium",
       humanPlayer: "X",
-      ...DEFAULT_PVP_NAMES,
+      ...defaultPvpNames(),
     };
   }
   return {
@@ -71,6 +65,7 @@ export default function PreGameSetup({
   initialConfig,
   onStart,
 }: PreGameSetupProps) {
+  const { t } = useTranslation();
   const [form, setForm] = useState<SetupForm>(() =>
     formFromConfig(initialConfig),
   );
@@ -79,26 +74,37 @@ export default function PreGameSetup({
     setForm(formFromConfig(initialConfig));
   }, [initialConfig]);
 
+  const buildConfig = (f: SetupForm): GameConfig => ({
+    gameMode: f.gameMode,
+    boardSize: f.boardSize,
+    aiDifficulty: f.aiDifficulty,
+    humanPlayer: f.humanPlayer,
+    names: {
+      X: f.nameX.trim() || t("defaults.playerX"),
+      O: f.nameO.trim() || t("defaults.playerO"),
+    },
+  });
+
   const setField = <K extends keyof SetupForm>(key: K, value: SetupForm[K]) => {
     setForm((prev) => {
       const next = { ...prev, [key]: value };
       if (key === "gameMode") {
         if (value === "vs_ai") {
           next.humanPlayer = "X";
-          next.nameX = "You";
-          next.nameO = "Computer";
+          next.nameX = t("defaults.you");
+          next.nameO = t("defaults.computer");
         } else {
-          next.nameX = DEFAULT_PVP_NAMES.nameX;
-          next.nameO = DEFAULT_PVP_NAMES.nameO;
+          next.nameX = t("defaults.player1");
+          next.nameO = t("defaults.player2");
         }
       }
       if (key === "humanPlayer" && next.gameMode === "vs_ai") {
         if (value === "X") {
-          next.nameX = "You";
-          next.nameO = "Computer";
+          next.nameX = t("defaults.you");
+          next.nameO = t("defaults.computer");
         } else {
-          next.nameX = "Computer";
-          next.nameO = "You";
+          next.nameX = t("defaults.computer");
+          next.nameO = t("defaults.you");
         }
       }
       return next;
@@ -125,18 +131,19 @@ export default function PreGameSetup({
     >
       <Box>
         <Typography variant="h5" fontWeight={700} gutterBottom>
-          New game
+          {t("setup.title")}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Choose board size and mode. X always takes the first move; you need{" "}
-          {form.boardSize} in a row to win on a {form.boardSize}×{form.boardSize}{" "}
-          board.
+          {t("setup.intro", {
+            count: form.boardSize,
+            size: form.boardSize,
+          })}
         </Typography>
       </Box>
 
       <Box>
         <Typography variant="subtitle2" fontWeight={700} gutterBottom>
-          Board size
+          {t("setup.boardSize")}
         </Typography>
         <ToggleButtonGroup
           exclusive
@@ -145,7 +152,7 @@ export default function PreGameSetup({
           onChange={(_, value: BoardSize | null) => {
             if (value !== null) setField("boardSize", value);
           }}
-          aria-label="Board size"
+          aria-label={t("setup.boardSizeAria")}
         >
           <ToggleButton value={3}>3×3</ToggleButton>
           <ToggleButton value={4}>4×4</ToggleButton>
@@ -155,7 +162,7 @@ export default function PreGameSetup({
 
       <Box>
         <Typography variant="subtitle2" fontWeight={700} gutterBottom>
-          Mode
+          {t("setup.mode")}
         </Typography>
         <ToggleButtonGroup
           exclusive
@@ -164,36 +171,36 @@ export default function PreGameSetup({
           onChange={(_, value: GameMode | null) => {
             if (value !== null) setField("gameMode", value);
           }}
-          aria-label="Game mode"
+          aria-label={t("setup.modeAria")}
         >
-          <ToggleButton value="pvp">2 players</ToggleButton>
-          <ToggleButton value="vs_ai">vs Computer</ToggleButton>
+          <ToggleButton value="pvp">{t("setup.pvp")}</ToggleButton>
+          <ToggleButton value="vs_ai">{t("setup.vsAi")}</ToggleButton>
         </ToggleButtonGroup>
       </Box>
 
       {form.gameMode === "vs_ai" && (
         <>
           <FormControl fullWidth size="small">
-            <InputLabel id="ai-difficulty-label">AI difficulty</InputLabel>
+            <InputLabel id="ai-difficulty-label">
+              {t("setup.aiDifficulty")}
+            </InputLabel>
             <Select
               labelId="ai-difficulty-label"
               value={form.aiDifficulty}
-              label="AI difficulty"
+              label={t("setup.aiDifficulty")}
               onChange={(e) =>
                 setField("aiDifficulty", e.target.value as AiDifficulty)
               }
             >
-              <MenuItem value="easy">Easy — random</MenuItem>
-              <MenuItem value="medium">Medium — blocks &amp; attacks</MenuItem>
-              <MenuItem value="hard">
-                Hard — unbeatable on 3×3, strong on larger boards
-              </MenuItem>
+              <MenuItem value="easy">{t("setup.aiEasy")}</MenuItem>
+              <MenuItem value="medium">{t("setup.aiMedium")}</MenuItem>
+              <MenuItem value="hard">{t("setup.aiHard")}</MenuItem>
             </Select>
           </FormControl>
 
           <Box>
             <Typography variant="subtitle2" fontWeight={700} gutterBottom>
-              You play as
+              {t("setup.youPlayAs")}
             </Typography>
             <ToggleButtonGroup
               exclusive
@@ -202,10 +209,10 @@ export default function PreGameSetup({
               onChange={(_, value: Player | null) => {
                 if (value !== null) setField("humanPlayer", value);
               }}
-              aria-label="Your side"
+              aria-label={t("setup.yourSideAria")}
             >
-              <ToggleButton value="X">X (go first)</ToggleButton>
-              <ToggleButton value="O">O (go second)</ToggleButton>
+              <ToggleButton value="X">{t("setup.playX")}</ToggleButton>
+              <ToggleButton value="O">{t("setup.playO")}</ToggleButton>
             </ToggleButtonGroup>
           </Box>
         </>
@@ -213,10 +220,10 @@ export default function PreGameSetup({
 
       <Stack spacing={1.5}>
         <Typography variant="subtitle2" fontWeight={700}>
-          Player names
+          {t("setup.playerNames")}
         </Typography>
         <TextField
-          label="Player X"
+          label={t("setup.playerX")}
           value={form.nameX}
           onChange={(e) => setField("nameX", e.target.value)}
           fullWidth
@@ -225,7 +232,7 @@ export default function PreGameSetup({
           disabled={form.gameMode === "vs_ai" && form.humanPlayer === "O"}
         />
         <TextField
-          label="Player O"
+          label={t("setup.playerO")}
           value={form.nameO}
           onChange={(e) => setField("nameO", e.target.value)}
           fullWidth
@@ -242,7 +249,7 @@ export default function PreGameSetup({
         startIcon={<PlayArrowRoundedIcon />}
         fullWidth
       >
-        Start game
+        {t("setup.startGame")}
       </Button>
     </Paper>
   );

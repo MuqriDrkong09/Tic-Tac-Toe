@@ -1,12 +1,9 @@
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import { useTranslation } from "react-i18next";
 import type { Scoreboard as ScoreboardType } from "../types.ts";
 
-/**
- * Compact scoreboard with three cards: X wins, Draws, O wins.
- * Each card uses the player's theme color for instant recognition.
- */
 export type ScoreboardProps = {
   score: ScoreboardType;
   labelX?: string;
@@ -68,23 +65,35 @@ const ScoreCard = ({
   );
 };
 
-const winsLabel = (name: string) => `${name.toUpperCase()} WINS`;
-
 export default function Scoreboard({
   score,
   labelX = "X",
   labelO = "O",
 }: ScoreboardProps) {
+  const { t } = useTranslation();
+
   return (
     <Stack
       direction="row"
       spacing={1.5}
       sx={{ width: "100%" }}
-      aria-label="Scoreboard"
+      aria-label={t("scoreboard.aria")}
     >
-      <ScoreCard label={winsLabel(labelX)} value={score.X} tone="primary" />
-      <ScoreCard label="DRAWS" value={score.draws} tone="neutral" />
-      <ScoreCard label={winsLabel(labelO)} value={score.O} tone="secondary" />
+      <ScoreCard
+        label={t("scoreboard.wins", { name: labelX }).toUpperCase()}
+        value={score.X}
+        tone="primary"
+      />
+      <ScoreCard
+        label={t("scoreboard.draws").toUpperCase()}
+        value={score.draws}
+        tone="neutral"
+      />
+      <ScoreCard
+        label={t("scoreboard.wins", { name: labelO }).toUpperCase()}
+        value={score.O}
+        tone="secondary"
+      />
     </Stack>
   );
 }

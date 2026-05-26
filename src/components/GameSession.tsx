@@ -45,6 +45,7 @@ import {
 import { fireWinConfetti } from "../confetti.ts";
 import { getGameStatus } from "../gameLogic.ts";
 import { useSound } from "../SoundContext.tsx";
+import { useTranslation } from "react-i18next";
 import Board from "./Board.tsx";
 import MoveHistory from "./MoveHistory.tsx";
 import Scoreboard from "./Scoreboard.tsx";
@@ -117,6 +118,7 @@ export default function GameSession({
     [config],
   );
 
+  const { t } = useTranslation();
   const { playMove, playWin, playDraw } = useSound();
 
   const countedRef = useRef(false);
@@ -270,10 +272,10 @@ export default function GameSession({
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <StatusBar status={status} playerLabel={playerLabel} />
         </Box>
-        <Tooltip title="Move history">
+        <Tooltip title={t("game.historyTooltip")}>
           <IconButton
             onClick={() => setHistoryOpen(true)}
-            aria-label="Open move history"
+            aria-label={t("game.openHistoryAria")}
             sx={{
               flexShrink: 0,
               alignSelf: "center",
@@ -300,7 +302,7 @@ export default function GameSession({
           sx={{ fontStyle: "italic" }}
           aria-live="polite"
         >
-          {playerLabel(aiPlayer!)} is thinking…
+          {t("game.aiThinking", { name: playerLabel(aiPlayer!) })}
         </Typography>
       )}
 
@@ -317,7 +319,7 @@ export default function GameSession({
         spacing={1.5}
         sx={{ width: "100%" }}
       >
-        <Tooltip title="Undo (Ctrl+Z)">
+        <Tooltip title={t("game.undoTooltip")}>
           <span style={{ flex: 1, display: "flex" }}>
             <Button
               variant="outlined"
@@ -327,13 +329,13 @@ export default function GameSession({
               onClick={() => dispatch({ type: "UNDO" })}
               disabled={!undoAvailable}
               fullWidth
-              aria-label="Undo last move"
+              aria-label={t("game.undoAria")}
             >
-              Undo
+              {t("game.undo")}
             </Button>
           </span>
         </Tooltip>
-        <Tooltip title="Redo (Ctrl+Shift+Z)">
+        <Tooltip title={t("game.redoTooltip")}>
           <span style={{ flex: 1, display: "flex" }}>
             <Button
               variant="outlined"
@@ -343,9 +345,9 @@ export default function GameSession({
               onClick={() => dispatch({ type: "REDO" })}
               disabled={!redoAvailable}
               fullWidth
-              aria-label="Redo move"
+              aria-label={t("game.redoAria")}
             >
-              Redo
+              {t("game.redo")}
             </Button>
           </span>
         </Tooltip>
@@ -365,7 +367,7 @@ export default function GameSession({
           onClick={handleNewGame}
           sx={{ flex: 1 }}
         >
-          New game
+          {t("game.newGame")}
         </Button>
         <Button
           variant="outlined"
@@ -375,7 +377,7 @@ export default function GameSession({
           onClick={onBackToSetup}
           sx={{ flex: 1 }}
         >
-          Setup
+          {t("game.setup")}
         </Button>
         <Button
           variant="outlined"
@@ -385,7 +387,7 @@ export default function GameSession({
           onClick={handleResetAll}
           sx={{ flex: 1 }}
         >
-          Reset all
+          {t("game.resetAll")}
         </Button>
       </Stack>
 
@@ -407,11 +409,11 @@ export default function GameSession({
             sx={{ px: 2, py: 1.5, borderBottom: 1, borderColor: "divider" }}
           >
             <Typography variant="h6" fontWeight={700}>
-              Move history
+              {t("game.moveHistory")}
             </Typography>
             <IconButton
               onClick={() => setHistoryOpen(false)}
-              aria-label="Close move history"
+              aria-label={t("game.closeHistoryAria")}
               edge="end"
             >
               <CloseRoundedIcon />
